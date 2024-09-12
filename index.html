@@ -29,16 +29,66 @@
 
         async function processPDF(arrayBuffer) {
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let htmlContent = '';
+            let textContent = '';
 
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 const page = await pdf.getPage(pageNum);
-                const textContent = await page.getTextContent();
-                htmlContent += `<h2>Page ${pageNum}</h2>`;
-                htmlContent += textContent.items.map(item => `<p>${item.str}</p>`).join('');
+                const content = await page.getTextContent();
+                textContent += content.items.map(item => item.str).join(' ') + ' ';
             }
 
-            document.getElementById('pdfContent').innerHTML = htmlContent;
+            extractResults(textContent);
+        }
+
+        function extractResults(text) {
+            // Regular expressions to match the sample data
+            const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s8260([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
+            const resultPattern = /(\w+)\s+(\w+)\s+([\d\.]+|ND)/g;
+
+            let match;
+            const results = [];
+
+            while ((match = samplePattern.exec(text)) !== null) {
+                const sampleId = match[1];
+                const resultsSection = match[3];
+                const resultMatch = [...resultsSection.matchAll(resultPattern)];
+
+                let benzene = 'ND';
+                let toluene = 'ND';
+                let ethylbenzene = 'ND';
+                let xylenes = 'ND';
+                let tphGRO = 'ND';
+
+                resultMatch.forEach(([_, param, __, value]) => {
+                    if (param === 'Benzene') benzene = value;
+                    if (param === 'Toluene') toluene = value;
+                    if (param === 'Ethylbenzene') ethylbenzene = value;
+                    if (param === 'Xylene') xylenes = value; // Assuming 'Xylene' here for simplification
+                    if (param === 'TPH-GRO') tphGRO = value;
+                });
+
+                results.push({ sampleId, benzene, toluene, ethylbenzene, xylenes, tphGRO });
+            }
+
+            displayResults(results);
+        }
+
+        function displayResults(results) {
+            const tableBody = document.querySelector('#resultsTable tbody');
+            tableBody.innerHTML = '';
+
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${result.sampleId}</td>
+                    <td>${result.benzene}</td>
+                    <td>${result.toluene}</td>
+                    <td>${result.ethylbenzene}</td>
+                    <td>${result.xylenes}</td>
+                    <td>${result.tphGRO}</td>
+                `;
+                tableBody.appendChild(row);
+            });
         }
     </script>
 </body>
