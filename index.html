@@ -8,6 +8,20 @@
 <body>
     <input type="file" id="fileInput" accept="application/pdf">
     <div id="pdfContent"></div>
+    <table id="resultsTable" border="1">
+        <thead>
+            <tr>
+                <th>Sample ID</th>
+                <th>Benzene</th>
+                <th>Toluene</th>
+                <th>Ethylbenzene</th>
+                <th>Xylenes</th>
+                <th>TPH-GRO</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 
     <script type="module">
         import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
