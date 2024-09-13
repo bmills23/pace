@@ -63,7 +63,7 @@
         function extractResults(text) {
             // Regular expression to match sample data, including sampling date
             const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s8260([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
-            const resultPattern = /(\w+[\-\w\s]*)\s+(ND|[\d\.]+)\s+mg\/L\s+([\d\/:]+)\s+[\d\-]+\s+[\d\/:]+\s+([\d\.]+)\s+1/g;
+            const resultPattern = /(\w+[\-\w\s]*)\s+(ND|[\d\.]+)\s+mg\/L\s+([\d\/:]+)\s+[\d\-]+\s+[\d\/:]+\s+([\d\.]+)/g;
 
             let match;
             const results = [];
@@ -73,22 +73,24 @@
                 const resultsSection = match[3];
                 const resultMatch = [...resultsSection.matchAll(resultPattern)];
 
-                let benzene = '0.00'; // Default value
-                let toluene = '0.00'; // Default value
-                let ethylbenzene = '0.00'; // Default value
-                let xylenes = '0.00'; // Default value
-                let tphGRO = '0.00'; // Default value
+                // Initialize default values
+                let benzene = '0.00';
+                let toluene = '0.00';
+                let ethylbenzene = '0.00';
+                let xylenes = '0.00';
+                let tphGRO = '0.00';
                 let mtbe = ''; // MTBE will be between Xylenes and TPH-GRO
-                let teph = '0.00'; // TEPH after TPH-GRO
+                let teph = '0.00'; // Default for TEPH
                 let sampleDate = '';
-                let tephReportingLimit = ''; // This will hold a reporting limit for TEPH-related constituents
+                let tephReportingLimit = ''; // Reporting limit for TEPH-related constituents
 
                 resultMatch.forEach(([_, param, value, date, reportLimit]) => {
                     let finalValue = value === 'ND' ? reportLimit : value;
 
-                    if (!sampleDate) sampleDate = date; // Capture the sampling date from the first match
+                    // Capture the sample date from the first match
+                    if (!sampleDate) sampleDate = date; 
 
-                    // Check for known parameters
+                    // Check for known parameters and assign values
                     switch (param.toLowerCase()) {
                         case 'benzene':
                             benzene = finalValue;
@@ -104,13 +106,11 @@
                             xylenes = finalValue;
                             break;
                         case 'methyl-tert-butyl':
-                        case 'methyltertbutylether':
                         case 'mtbe':
                             mtbe = finalValue;
                             break;
                         case 'gasoline':
                         case 'gro':
-                        case 'gasolinerangeorganics':
                             tphGRO = finalValue;
                             break;
                         case 'diesel':
@@ -120,13 +120,13 @@
                         case 'mineral spirits':
                         case 'motor oil':
                         case 'total petroleum hydrocarbons':
-                            teph = finalValue; // Capture the TEPH detection
-                            tephReportingLimit = reportLimit; // Store report limit in case of ND
+                            teph = finalValue; // Capture TEPH detection
+                            tephReportingLimit = reportLimit; // Store reporting limit
                             break;
                     }
                 });
 
-                // If no TEPH detection, use the TEPH-related reporting limit
+                // If no TEPH detection, use the reporting limit for TEPH-related constituents
                 if (teph === 'ND' && tephReportingLimit) {
                     teph = tephReportingLimit;
                 }
