@@ -24,88 +24,94 @@
     </table>
 
     <script type="module">
-        import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
-
-        // PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
-
-        document.getElementById('fileInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function() {
-                    const arrayBuffer = reader.result;
-                    processPDF(arrayBuffer);
-                };
-                reader.readAsArrayBuffer(file);
-            }
-        });
-
-        async function processPDF(arrayBuffer) {
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let textContent = '';
-
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                const page = await pdf.getPage(pageNum);
-                const content = await page.getTextContent();
-                textContent += content.items.map(item => item.str).join(' ') + ' ';
-            }
-
-            console.log(textContent);
-
-            extractResults(textContent);
-        }
-
-        function extractResults(text) {
-            // Regular expressions to match the sample data
-            const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s8260([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
-            const resultPattern = /(\w+)\s+(\w+)\s+([\d\.]+|ND)/g;
-
-            let match;
-            const results = [];
-
-            while ((match = samplePattern.exec(text)) !== null) {
-                const sampleId = match[1];
-                const resultsSection = match[3];
-                const resultMatch = [...resultsSection.matchAll(resultPattern)];
-
-                let benzene = 'ND';
-                let toluene = 'ND';
-                let ethylbenzene = 'ND';
-                let xylenes = 'ND';
-                let tphGRO = 'ND';
-
-                resultMatch.forEach(([_, param, __, value]) => {
-                    if (param === 'Benzene') benzene = value;
-                    if (param === 'Toluene') toluene = value;
-                    if (param === 'Ethylbenzene') ethylbenzene = value;
-                    if (param === 'Xylene') xylenes = value; // Assuming 'Xylene' here for simplification
-                    if (param === 'TPH-GRO') tphGRO = value;
-                });
-
-                results.push({ sampleId, benzene, toluene, ethylbenzene, xylenes, tphGRO });
-            }
-
-            displayResults(results);
-        }
-
-        function displayResults(results) {
-            const tableBody = document.querySelector('#resultsTable tbody');
-            tableBody.innerHTML = '';
-
-            results.forEach(result => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${result.sampleId}</td>
-                    <td>${result.benzene}</td>
-                    <td>${result.toluene}</td>
-                    <td>${result.ethylbenzene}</td>
-                    <td>${result.xylenes}</td>
-                    <td>${result.tphGRO}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-    </script>
+      import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
+  
+      // PDF.js worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
+  
+      // Handle file input
+      document.getElementById('fileInput').addEventListener('change', function(event) {
+          const file = event.target.files[0];
+          if (file) {
+              const reader = new FileReader();
+              reader.onload = function() {
+                  const arrayBuffer = reader.result;
+                  processPDF(arrayBuffer);
+              };
+              reader.readAsArrayBuffer(file);
+          }
+      });
+  
+      async function processPDF(arrayBuffer) {
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let textContent = '';
+  
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              const page = await pdf.getPage(pageNum);
+              const content = await page.getTextContent();
+              textContent += content.items.map(item => item.str).join(' ') + ' ';
+          }
+  
+          console.log(textContent);
+          extractResults(textContent);
+      }
+  
+      function extractResults(text) {
+          // Regular expression to match sample data, including sampling date
+          const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s8260([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
+          const resultPattern = /(\w+)\s+(ND|[\d\.]+)\s+mg\/L\s+([\d\/:]+)\s+[\d\-]+\s+[\d\/:]+\s+([\d\.]+)\s+1/g;
+  
+          let match;
+          const results = [];
+  
+          while ((match = samplePattern.exec(text)) !== null) {
+              const sampleId = match[1];
+              const resultsSection = match[3];
+              const resultMatch = [...resultsSection.matchAll(resultPattern)];
+  
+              let benzene = 'ND';
+              let toluene = 'ND';
+              let ethylbenzene = 'ND';
+              let xylenes = 'ND';
+              let tphGRO = 'ND';
+              let sampleDate = '';
+  
+              resultMatch.forEach(([_, param, value, date, reportLimit]) => {
+                  let finalValue = (value === 'ND') ? reportLimit : value;
+  
+                  if (!sampleDate) sampleDate = date; // Capture the sampling date from the first match
+  
+                  if (param === 'Benzene') benzene = finalValue;
+                  if (param === 'Toluene') toluene = finalValue;
+                  if (param === 'Ethylbenzene') ethylbenzene = finalValue;
+                  if (param === 'Xylene' || param === 'Xylenes') xylenes = finalValue; // For both singular and plural
+                  if (param === 'Gasoline' || param === 'GRO' || param === 'GasolineRangeOrganics') tphGRO = finalValue; // Handling TPH-GRO
+              });
+  
+              results.push({ sampleId, sampleDate, benzene, toluene, ethylbenzene, xylenes, tphGRO });
+          }
+  
+          displayResults(results);
+      }
+  
+      function displayResults(results) {
+          const tableBody = document.querySelector('#resultsTable tbody');
+          tableBody.innerHTML = ''; // Clear existing rows
+  
+          results.forEach(result => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                  <td>${result.sampleId}</td>
+                  <td>${result.sampleDate}</td>
+                  <td>${result.benzene}</td>
+                  <td>${result.toluene}</td>
+                  <td>${result.ethylbenzene}</td>
+                  <td>${result.xylenes}</td>
+                  <td>${result.tphGRO}</td>
+              `;
+              tableBody.appendChild(row);
+          });
+      }
+  </script>
 </body>
 </html>
