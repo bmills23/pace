@@ -62,10 +62,10 @@
 
         function extractResults(text) {
             // Regular expression to match sample data, including sampling date
-            const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s(8260|8015B)([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
+            const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Collected:\s+([^\s]+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s(8260|8015B)([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
             
             // Adjusted pattern to capture parameter, value, unit, date, etc.
-            const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\bgasoline range organics\b|\btoluene\b|\bxylene \(total\)|Methyl-tert-butyl ether | Total Petroleum Hydrocarbons\s*)\s+(ND|[\d\.]+)/gi;
+            const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\bgasoline range organics\b|\btoluene\b|\bxylene \(total\)|Methyl-tert-butyl ether | Total Petroleum Hydrocarbons\s*)\s+(ND|[\d\.]+)|(\bCollected:   \d{1,2}\/\d{1,2}\/\d{2,4})/gi;
                                 
             let match;
             const results = [];
@@ -75,7 +75,7 @@
                 console.log(match);
 
                 const sampleId = match[1];
-                const analysis = match[3];
+                const sampleDate = match[3];
                 const resultsSection = match[4];
 
                 console.log(`Extracting results for Sample ID: ${sampleId}`); // Debug log
@@ -86,20 +86,16 @@
                 console.log("Matched results", resultMatch);
 
                 // Initialize default values
-                let benzene = '0.00';
-                let toluene = '0.00';
-                let ethylbenzene = '0.00';
-                let xylenes = '0.00';
-                let tphGRO = '0.00';
+                let benzene = '';
+                let toluene = '';
+                let ethylbenzene = '';
+                let xylenes = '';
+                let tphGRO = '';
                 let mtbe = ''; 
-                let teph = '0.00';
-                let sampleDate = '';
+                let teph = '';
 
                 resultMatch.forEach(([_, param, value, date, reportLimit]) => {
                     let finalValue = value === 'ND' ? reportLimit : value;
-
-                    // Capture sample date from the first match
-                    if (!sampleDate) sampleDate = date; 
 
                     // Debug log for each parameter
                     console.log(`Param: ${param}, Value: ${value}, Date: ${date}, Report Limit: ${reportLimit}`); 
