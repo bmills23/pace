@@ -63,7 +63,9 @@
         function extractResults(text) {
             // Regular expression to match sample data, including sampling date
             const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s8260([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
-            const resultPattern = /(\w+[\-\w\s]*)\s+(ND|[\d\.]+)\s+mg\/L\s+([\d\/:]+)\s+[\d\-]+\s+[\d\/:]+\s+([\d\.]+)/g;
+            
+            // Adjusted pattern to capture parameter, value, unit, date, etc.
+            const resultPattern = /(\w+[\s\(\)]+)\s+(ND|[\d\.]+)\s+mg\/L\s+([\d\/:]+)\s+\d{2}\/\d{2}\/\d{2}\s+\d{2}:\d{2}\s+\d{1,3}-\d{1,3}-\d{1,3}\s+\d{2}\/\d{2}\/\d{2}\s+\d{2}:\d{2}\s+([\d\.]+)/g;
 
             let match;
             const results = [];
@@ -86,16 +88,17 @@
                 let mtbe = ''; 
                 let teph = '0.00';
                 let sampleDate = '';
-                let tephReportingLimit = '';
 
                 resultMatch.forEach(([_, param, value, date, reportLimit]) => {
                     let finalValue = value === 'ND' ? reportLimit : value;
 
+                    // Capture sample date from the first match
                     if (!sampleDate) sampleDate = date; 
 
                     // Debug log for each parameter
                     console.log(`Param: ${param}, Value: ${value}, Date: ${date}, Report Limit: ${reportLimit}`); 
 
+                    // Check for known parameters
                     switch (param.toLowerCase()) {
                         case 'benzene':
                             benzene = finalValue;
@@ -110,30 +113,19 @@
                         case 'xylenes':
                             xylenes = finalValue;
                             break;
+                        case 'gasoline range organics':
+                        case 'tph-gro':
+                            tphGRO = finalValue;
+                            break;
                         case 'methyl-tert-butyl':
                         case 'mtbe':
                             mtbe = finalValue;
                             break;
-                        case 'gasoline':
-                        case 'gro':
-                            tphGRO = finalValue;
-                            break;
-                        case 'diesel':
-                        case 'fuel oil':
-                        case 'jet fuel':
-                        case 'kerosene':
-                        case 'mineral spirits':
-                        case 'motor oil':
                         case 'total petroleum hydrocarbons':
                             teph = finalValue; 
-                            tephReportingLimit = reportLimit; 
                             break;
                     }
                 });
-
-                if (teph === 'ND' && tephReportingLimit) {
-                    teph = tephReportingLimit;
-                }
 
                 results.push({ sampleId, sampleDate, benzene, toluene, ethylbenzene, xylenes, mtbe, tphGRO, teph });
             }
