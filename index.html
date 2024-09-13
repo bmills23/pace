@@ -56,7 +56,6 @@
                 textContent += content.items.map(item => item.str).join(' ') + ' ';
             }
 
-            console.log(textContent);
             extractResults(textContent);
         }
 
@@ -71,6 +70,7 @@
             const results = [];
 
             while ((match = samplePattern.exec(text)) !== null) {
+
                 const sampleId = match[1];
                 const resultsSection = match[3];
 
@@ -78,6 +78,8 @@
                 console.log(`Results Section: ${resultsSection}`); // Debug log
                 
                 const resultMatch = [...resultsSection.matchAll(resultPattern)];
+
+                console.log(resultMatch);
 
                 // Initialize default values
                 let benzene = '0.00';
