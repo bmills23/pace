@@ -65,7 +65,7 @@
             const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Collected:\s+([^\s]+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s(8260|8015B)([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
             
             // Adjusted pattern to capture parameter, value, unit, date, etc.
-            const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\bgasoline range organics\b|\btoluene\b|\bxylene \(total\)|Methyl-tert-butyl ether | Total Petroleum Hydrocarbons\s*)\s+(ND|[\d\.]+)/gi;
+            const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\bgasoline range organics\b|\btoluene\b|Methyl-tert-butyl ether\b|Total Petroleum Hydrocarbons\b|\bxylene \(total\))\s+(?:ND|[\d\.]+)/gi;
                                 
             let match;
             const results = [];
@@ -152,7 +152,7 @@
                     <td>${result.xylenes}</td>
                     <td>${result.mtbe || ''}</td> <!-- Empty if MTBE is not present -->
                     <td>${result.tphGRO}</td>
-                    <td>${result.teph}</td>
+                    <td>${result.teph}</td> <!-- Empty if TEPH not present -->
                 `;
                 tableBody.appendChild(row);
             });
