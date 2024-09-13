@@ -75,10 +75,11 @@
                 console.log(match);
 
                 const sampleId = match[1];
-                const resultsSection = match[3];
+                const analysis = match[3];
+                const resultsSection = match[4];
 
                 console.log(`Extracting results for Sample ID: ${sampleId}`); // Debug log
-                console.log(`Results Section: ${resultsSection}`); // Debug log
+                console.log(`Results Section: ${analysis}`); // Debug log
                 
                 const resultMatch = [...resultsSection.matchAll(resultPattern)];
 
