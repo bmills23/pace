@@ -71,6 +71,10 @@
             while ((match = samplePattern.exec(text)) !== null) {
                 const sampleId = match[1];
                 const resultsSection = match[3];
+
+                console.log(`Extracting results for Sample ID: ${sampleId}`); // Debug log
+                console.log(`Results Section: ${resultsSection}`); // Debug log
+                
                 const resultMatch = [...resultsSection.matchAll(resultPattern)];
 
                 // Initialize default values
@@ -79,18 +83,19 @@
                 let ethylbenzene = '0.00';
                 let xylenes = '0.00';
                 let tphGRO = '0.00';
-                let mtbe = ''; // MTBE will be between Xylenes and TPH-GRO
-                let teph = '0.00'; // Default for TEPH
+                let mtbe = ''; 
+                let teph = '0.00';
                 let sampleDate = '';
-                let tephReportingLimit = ''; // Reporting limit for TEPH-related constituents
+                let tephReportingLimit = '';
 
                 resultMatch.forEach(([_, param, value, date, reportLimit]) => {
                     let finalValue = value === 'ND' ? reportLimit : value;
 
-                    // Capture the sample date from the first match
                     if (!sampleDate) sampleDate = date; 
 
-                    // Check for known parameters and assign values
+                    // Debug log for each parameter
+                    console.log(`Param: ${param}, Value: ${value}, Date: ${date}, Report Limit: ${reportLimit}`); 
+
                     switch (param.toLowerCase()) {
                         case 'benzene':
                             benzene = finalValue;
@@ -120,13 +125,12 @@
                         case 'mineral spirits':
                         case 'motor oil':
                         case 'total petroleum hydrocarbons':
-                            teph = finalValue; // Capture TEPH detection
-                            tephReportingLimit = reportLimit; // Store reporting limit
+                            teph = finalValue; 
+                            tephReportingLimit = reportLimit; 
                             break;
                     }
                 });
 
-                // If no TEPH detection, use the reporting limit for TEPH-related constituents
                 if (teph === 'ND' && tephReportingLimit) {
                     teph = tephReportingLimit;
                 }
@@ -134,6 +138,7 @@
                 results.push({ sampleId, sampleDate, benzene, toluene, ethylbenzene, xylenes, mtbe, tphGRO, teph });
             }
 
+            console.log(`Results Extracted:`, results); // Debug log for results
             displayResults(results);
         }
 
