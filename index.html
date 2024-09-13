@@ -64,9 +64,8 @@
             const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s8260([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
             
             // Adjusted pattern to capture parameter, value, unit, date, etc.
-            const resultPattern = /([\w\s\(\)]+)\s+(ND|[\d\.]+)\s+mg\/L\s+([\d\/:]+)\s+\d{2}\/\d{2}\/\d{2}\s+\d{2}:\d{2}\s+\d{1,3}-\d{1,3}-\d{1,3}\s+\d{2}\/\d{2}\/\d{2}\s+\d{2}:\d{2}\s+([\d\.]+)/g;
+            const resultPattern = /([\w\s\(\)]+)\s+(ND|[\d\.]+)\s+mg\/L\s+([\d\/:]+)\s+\d{2}\/\d{2}\/\d{2}\s+\d{2}:\d{2}\s+\d{1,3}-\d{1,3}-\d{1,3}\s+\d{2}\/\d{2}\/\d{2}\s+\d{2}:\d{2}\s+([\d\.]+)/gi;
                                 
-
             let match;
             const results = [];
 
