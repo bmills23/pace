@@ -8,27 +8,31 @@
 <body>
     <input type="file" id="fileInput" accept="application/pdf">
     <div id="pdfContent"></div>
-    <table id="resultsTable" border="1">
-        <thead>
-            <tr>
-                <th>Sample ID</th>
-                <th>Benzene</th>
-                <th>Toluene</th>
-                <th>Ethylbenzene</th>
-                <th>Xylenes</th>
-                <th>TPH-GRO</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    <table>
+      <thead>
+          <tr>
+              <th>Sample ID</th>
+              <th>Sample Date</th>
+              <th>Benzene</th>
+              <th>Toluene</th>
+              <th>Ethylbenzene</th>
+              <th>Xylenes</th>
+              <th>MTBE</th>
+              <th>TPH-GRO</th>
+              <th>TEPH</th>
+          </tr>
+      </thead>
+      <tbody id="resultsTable">
+          <!-- Rows will be inserted dynamically -->
+      </tbody>
+  </table>
 
-    <script type="module">
+  <script type="module">
       import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
-  
+
       // PDF.js worker
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
-  
+
       // Handle file input
       document.getElementById('fileInput').addEventListener('change', function(event) {
           const file = event.target.files[0];
@@ -41,63 +45,102 @@
               reader.readAsArrayBuffer(file);
           }
       });
-  
+
       async function processPDF(arrayBuffer) {
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           let textContent = '';
-  
+
           for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
               const page = await pdf.getPage(pageNum);
               const content = await page.getTextContent();
               textContent += content.items.map(item => item.str).join(' ') + ' ';
           }
-  
+
           console.log(textContent);
           extractResults(textContent);
       }
-  
+
       function extractResults(text) {
           // Regular expression to match sample data, including sampling date
           const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s8260([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
-          const resultPattern = /(\w+)\s+(ND|[\d\.]+)\s+mg\/L\s+([\d\/:]+)\s+[\d\-]+\s+[\d\/:]+\s+([\d\.]+)\s+1/g;
-  
+          const resultPattern = /(\w+[\-\w]*)\s+(ND|[\d\.]+)\s+mg\/L\s+([\d\/:]+)\s+[\d\-]+\s+[\d\/:]+\s+([\d\.]+)\s+1/g;
+
           let match;
           const results = [];
-  
+
           while ((match = samplePattern.exec(text)) !== null) {
               const sampleId = match[1];
               const resultsSection = match[3];
               const resultMatch = [...resultsSection.matchAll(resultPattern)];
-  
+
               let benzene = 'ND';
               let toluene = 'ND';
               let ethylbenzene = 'ND';
               let xylenes = 'ND';
               let tphGRO = 'ND';
+              let mtbe = ''; // MTBE will be between Xylenes and TPH-GRO
+              let teph = ''; // TEPH after TPH-GRO
               let sampleDate = '';
-  
+              let tephReportingLimit = ''; // This will hold a reporting limit for TEPH-related constituents
+
               resultMatch.forEach(([_, param, value, date, reportLimit]) => {
                   let finalValue = (value === 'ND') ? reportLimit : value;
-  
+
                   if (!sampleDate) sampleDate = date; // Capture the sampling date from the first match
-  
-                  if (param === 'Benzene') benzene = finalValue;
-                  if (param === 'Toluene') toluene = finalValue;
-                  if (param === 'Ethylbenzene') ethylbenzene = finalValue;
-                  if (param === 'Xylene' || param === 'Xylenes') xylenes = finalValue; // For both singular and plural
-                  if (param === 'Gasoline' || param === 'GRO' || param === 'GasolineRangeOrganics') tphGRO = finalValue; // Handling TPH-GRO
+
+                  // Check for known parameters
+                  switch (param.toLowerCase()) {
+                      case 'benzene':
+                          benzene = finalValue;
+                          break;
+                      case 'toluene':
+                          toluene = finalValue;
+                          break;
+                      case 'ethylbenzene':
+                          ethylbenzene = finalValue;
+                          break;
+                      case 'xylene':
+                      case 'xylenes':
+                          xylenes = finalValue;
+                          break;
+                      case 'methyl-tert-butyl':
+                      case 'methyltertbutylether':
+                      case 'mtbe':
+                          mtbe = finalValue;
+                          break;
+                      case 'gasoline':
+                      case 'gro':
+                      case 'gasolinerangeorganics':
+                          tphGRO = finalValue;
+                          break;
+                      case 'diesel':
+                      case 'fuel oil':
+                      case 'jet fuel':
+                      case 'kerosene':
+                      case 'mineral spirits':
+                      case 'motor oil':
+                      case 'total petroleum hydrocarbons':
+                          teph = finalValue;
+                          tephReportingLimit = reportLimit; // Store report limit in case of ND
+                          break;
+                  }
               });
-  
-              results.push({ sampleId, sampleDate, benzene, toluene, ethylbenzene, xylenes, tphGRO });
+
+              // If no TEPH detection, use the TEPH-related reporting limit
+              if (teph === 'ND' && tephReportingLimit) {
+                  teph = tephReportingLimit;
+              }
+
+              results.push({ sampleId, sampleDate, benzene, toluene, ethylbenzene, xylenes, mtbe, tphGRO, teph });
           }
-  
+
           displayResults(results);
       }
-  
+
       function displayResults(results) {
           const tableBody = document.querySelector('#resultsTable tbody');
           tableBody.innerHTML = ''; // Clear existing rows
-  
+
           results.forEach(result => {
               const row = document.createElement('tr');
               row.innerHTML = `
@@ -107,7 +150,9 @@
                   <td>${result.toluene}</td>
                   <td>${result.ethylbenzene}</td>
                   <td>${result.xylenes}</td>
+                  <td>${result.mtbe || ''}</td> <!-- Empty if MTBE is not present -->
                   <td>${result.tphGRO}</td>
+                  <td>${result.teph}</td>
               `;
               tableBody.appendChild(row);
           });
