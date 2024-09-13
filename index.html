@@ -95,7 +95,7 @@
                 let mtbe = ''; 
                 let teph = '';
 
-                resultMatch.forEach(([_, param, value, date, reportLimit]) => {
+                resultMatch.forEach(([_, param, value, reportLimit]) => {
                     let finalValue = value === 'ND' ? reportLimit : value;
 
                     // Debug log for each parameter
