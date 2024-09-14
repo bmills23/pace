@@ -65,7 +65,7 @@
             const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Collected:\s+([^\s]+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s(8260|8015B)([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
             
             // Adjusted pattern to capture parameter, value, unit, date, etc.
-            const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\bgasoline range organics\b|\btoluene\b|Methyl-tert-butyl ether\b|Total Petroleum Hydrocarbons\b|\bxylene \(total\))\s+(ND|[\d\.]+)/gi;
+            const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\bgasoline range organics\b|\btoluene\b|Methyl-tert-butyl ether\b|Total Petroleum Hydrocarbons\b|\bxylene \(total\))\s+(ND|[\d\.]+)(?:.*?)(\d\.\d*)/gi;
                                 
             let match;
             const results = [];
@@ -99,7 +99,7 @@
                     let finalValue = value === 'ND' ? reportLimit : value;
 
                     // Debug log for each parameter
-                    console.log(`Param: ${param}, Value: ${value}, Date: ${sampleDate}, Report Limit: ${reportLimit}`); 
+                    console.log(`Param: ${param}, Value: ${value}, Report Limit: ${reportLimit}`); 
 
                     // Check for known parameters
                     switch (param.toLowerCase()) {
