@@ -8,11 +8,12 @@ document.getElementById('toggle-carat').addEventListener('change', function(even
     if (cells) {
         cells.forEach(cell => {
             if (cell.innerHTML.includes('<')) {
-                cell.innerHTML.replace('<', '');
+                cell.innerHTML = cell.innerHTML.replace('<', '');
                 cell.classList.add('non-detect');
             } else {
                 if (cell.classList.contains('non-detect')){
-                    '<' + cell.innerHTML;
+                    cell.innerHTML = '<' + cell.innerHTML;
+                    cell.classList.remove('non-detect');
                 }
             }
         })
