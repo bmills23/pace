@@ -3,6 +3,16 @@ import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
 // PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
 
+document.getElementById('toggle-carat').addEventListener('change', function(event) {
+    const cells = document.querySelectorAll('.constituent');
+
+    if (cells) {
+        cells.forEach(cell => {
+            cells.includes('<') ? cell.innerHTML.replace('<', '') : '<' + cell.innerHTML;
+        })
+    }
+})
+
 // Handle file input
 document.getElementById('fileInput').addEventListener('change', function(event) {
     const file = event.target.files[0];
@@ -67,7 +77,7 @@ function extractResults(text) {
         let teph = '';
 
         resultMatch.forEach(([_, param, value, reportLimit]) => {
-            let finalValue = value === 'ND' ? "<" + reportLimit : value;
+            let finalValue = value === 'ND' ? reportLimit : value;
 
             // Debug log for each parameter
             console.log(`Param: ${param}, Value: ${value}, Report Limit: ${reportLimit}`); 
@@ -116,13 +126,13 @@ function displayResults(results) {
         row.innerHTML = `
             <td>${result.sampleId}</td>
             <td>${result.sampleDate}</td>
-            <td>${result.benzene}</td>
-            <td>${result.toluene}</td>
-            <td>${result.ethylbenzene}</td>
-            <td>${result.xylenes}</td>
-            <td>${result.mtbe || ''}</td> <!-- Empty if MTBE is not present -->
-            <td>${result.tphGRO}</td>
-            <td>${result.teph}</td> <!-- Empty if TEPH not present -->
+            <td class="constituent">${result.benzene}</td>
+            <td class="constituent">${result.toluene}</td>
+            <td class="constituent"${result.ethylbenzene}</td>
+            <td class="constituent">${result.xylenes}</td>
+            <td class="constituent">${result.mtbe || ''}</td> <!-- Empty if MTBE is not present -->
+            <td class="constituent">${result.tphGRO}</td>
+            <td class="constituent">${result.teph}</td> <!-- Empty if TEPH not present -->
         `;
         tableBody.appendChild(row);
     });
