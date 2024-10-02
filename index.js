@@ -5,19 +5,17 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build
 
 document.getElementById('toggle-carat').addEventListener('change', function(event) {
     const cells = document.querySelectorAll('.constituent');
-    if (cells) {
-        cells.forEach(cell => {
-            if (cell.innerHTML.includes('<')) {
-                cell.innerHTML = cell.innerHTML.replace('<', '');
-                cell.classList.add('non-detect');
-            } else {
-                if (cell.classList.contains('non-detect')){
-                    cell.innerHTML = '<' + cell.innerHTML;
-                    cell.classList.remove('non-detect');
-                }
+    cells.forEach(cell => {
+        if (cell.innerHTML.includes('<')) {
+            cell.innerHTML = cell.innerHTML.replace('<', '');
+            cell.classList.add('non-detect');
+        } else {
+            if (cell.classList.contains('non-detect')){
+                cell.innerHTML = '<' + cell.innerHTML;
+                cell.classList.remove('non-detect');
             }
-        })
-    }
+        }
+    })
 })
 
 // Handle file input
