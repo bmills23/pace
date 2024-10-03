@@ -7,12 +7,10 @@ document.getElementById('toggle-carat').addEventListener('change', function(even
     const cells = document.querySelectorAll('.constituent');
     cells.forEach(cell => {
         if (cell.innerHTML.includes('&lt;')) {
-            console.log('cell contains <')
             cell.innerHTML = cell.innerHTML.replace('&lt;', '');
             cell.classList.add('non-detect');
         } else {
-            if (cell.classList.contains('non-detect')){
-                console.log('removing <')
+            if (cell.classList.contains('non-detect')) {
                 cell.innerHTML = '&lt;' + cell.innerHTML;
                 cell.classList.remove('non-detect');
             }
@@ -65,7 +63,6 @@ function extractResults(text) {
         const sampleId = match[1];
         const sampleDate = match[3];
         const analysis = match[5];
-
 
         console.log(`Extracting results for Sample ID: ${sampleId}`); // Debug log
         console.log(`Results Section: ${analysis}`); // Debug log
