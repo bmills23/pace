@@ -51,8 +51,8 @@ function extractResults(text) {
     // Regular expression to match sample data, including sampling date
     const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Collected:\s+([^\s]+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s(8260|8015B)([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
     
-    // Adjusted pattern to capture parameter, value, unit, date, etc.
-    const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\btph-gro\b|\bgasoline range organics\b|\btoluene\b|Methyl-tert-butyl ether\b|Total Petroleum Hydrocarbons\b|\bxylene \(total\))\s+(ND|[\d\.]+)(?:.*?)(\d\.\d*)/gi;
+    // Adjusted pattern to capture parameter, value, unit, date, etc.                                                                                                                        // Match ND, Number, <Number, and J-flags
+    const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\btph-gro\b|\bgasoline range organics\b|\btoluene\b|Methyl-tert-butyl ether\b|Total Petroleum Hydrocarbons\b|\bxylene \(total\))\s+(ND|[\d\.]+|<[\d\.]+|[\d\.]+J)(?:.*?)(\d\.\d*)/gi;
                         
     let match;
     const results = [];
