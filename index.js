@@ -135,7 +135,7 @@ function displayResults(results) {
             <td>${result.sampleDate}</td>
             <td class="constituent">${result.benzene}</td>
             <td class="constituent">${result.toluene}</td>
-            <td class="constituent"${result.ethylbenzene}</td>
+            <td class="constituent">${result.ethylbenzene}</td>
             <td class="constituent">${result.xylenes}</td>
             <td class="constituent">${result.mtbe || ''}</td> <!-- Empty if MTBE is not present -->
             <td class="constituent">${result.tphGRO}</td>
