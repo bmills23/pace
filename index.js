@@ -164,9 +164,9 @@ function displayResults(results) {
             <td class="constituent">${result.mtbe || ''}</td> <!-- Empty if MTBE is not present -->
             <td class="constituent">${result.tphGRO}</td>
             <td class="constituent">${result.teph}</td> <!-- Empty if TEPH not present -->
-            <td class="constituent">${result.EDB}</td> <!-- Empty if TEPH not present -->
-            <td class="constituent">${result.DCA}</td> <!-- Empty if TEPH not present -->
-            <td class="constituent">${result.naph}</td> <!-- Empty if TEPH not present -->
+            <td class="constituent">${result.EDB}</td>
+            <td class="constituent">${result.DCA}</td> 
+            <td class="constituent">${result.naph}</td> 
         `;
         tableBody.appendChild(row);
     });
