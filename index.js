@@ -24,8 +24,13 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
     if (file) {
         const reader = new FileReader();
         reader.onload = function() {
-            const arrayBuffer = reader.result;
-            processPDF(arrayBuffer);
+            try {
+                const arrayBuffer = reader.result;
+                processPDF(arrayBuffer);
+            } catch (error) {
+                console.error("Error Processing PDF:", error);
+            }
+            
         };
         reader.readAsArrayBuffer(file);
     }
@@ -50,7 +55,7 @@ function extractResults(text) {
     const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Collected:\s+([^\s]+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s(8260|8015B)([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
     
     // Adjusted pattern to capture parameter, value, unit, date, etc.                                                                                                                        // Match ND, Number, <Number, and J-flags
-    const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\btph-gro\b|\bgasoline range organics\b|\btoluene\b|Methyl-tert-butyl ether\b|Total Petroleum Hydrocarbons\b|\bxylene \(total\))\s+(ND|<[\d\.]+|[\d\.]+J|[\d\.]+)(?:.*?)(\d+\.\d*)/gi;
+    const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\btph-gro\b|\bgasoline range organics\b|\btoluene\b|\bMethyl-tert-butyl ether\b|(\bTotal Petroleum Hydrocarbons\b|\bDiesel Fuel\b|\bFuel Oil\b|\bJet Fuel\b|\bKerosene\b|\bMineral Spirits\b|\bMotor Oil\b)|\bxylene \(total\)\b|\b1,2-DichloroEthane\b|1,2-Dibromoethane (EDB)\b)\s+(ND|<[\d\.]+|[\d\.]+J|[\d\.]+)(?:.*?)(\d+\.\d*)/gi;
                         
     let match;
     const results = [];
@@ -78,7 +83,11 @@ function extractResults(text) {
         let xylenes = '';
         let tphGRO = '';
         let mtbe = ''; 
-        let teph = '';
+        let teph = 0;
+        let tephMax = 0;
+        let EDB = '';
+        let DCA = '';
+        let naph = '';
 
         resultMatch.forEach(([_, param, value, reportLimit]) => {
             let finalValue = value === 'ND' ? '<' + reportLimit : value;
@@ -108,13 +117,31 @@ function extractResults(text) {
                 case 'mtbe':
                     mtbe = finalValue;
                     break;
+                case 'diesel fuel': // Add TEPH-related parameters to evaluation
+                case 'fuel oil':
+                case 'jet fuel':
+                case 'kerosene':
+                case 'mineral spirits':
+                case 'motor oil':
                 case 'total petroleum hydrocarbons':
-                    teph = finalValue; 
+                    if (finalValue > tephMax) {
+                        tephMax = finalValue; // Update max value
+                        teph = value;        // Store raw value
+                    }
+                    break;
+                case '1,2-dibromoethane (edb)':
+                    EDB = finalValue;
+                    break;
+                case '1,2-dichloroethane':
+                    DCA = finalValue;
+                    break;
+                case 'naphthalene':
+                    naph = finalValue;
                     break;
             }
         });
 
-        results.push({ sampleId, sampleDate, benzene, toluene, ethylbenzene, xylenes, mtbe, tphGRO, teph });
+        results.push({ sampleId, sampleDate, benzene, toluene, ethylbenzene, xylenes, mtbe, tphGRO, teph, EDB, DCA, naph });
     }
 
     console.log(`Results Extracted:`, results); // Debug log for results
@@ -137,6 +164,9 @@ function displayResults(results) {
             <td class="constituent">${result.mtbe || ''}</td> <!-- Empty if MTBE is not present -->
             <td class="constituent">${result.tphGRO}</td>
             <td class="constituent">${result.teph}</td> <!-- Empty if TEPH not present -->
+            <td class="constituent">${result.EDB}</td> <!-- Empty if TEPH not present -->
+            <td class="constituent">${result.DCA}</td> <!-- Empty if TEPH not present -->
+            <td class="constituent">${result.naph}</td> <!-- Empty if TEPH not present -->
         `;
         tableBody.appendChild(row);
     });
