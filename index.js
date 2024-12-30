@@ -54,8 +54,8 @@ function extractResults(text) {
     // Regular expression to match sample data, including sampling date
     const samplePattern = /Sample:\s+([^\s]+).*?Lab ID:\s+(\d+).*?Collected:\s+([^\s]+).*?Parameters\s+Results[\s\S]*?Analytical Method:\s+EPA\s(8011|8260|8015B)([\s\S]*?)REPORT OF LABORATORY ANALYSIS/gi;
     
-    // Adjusted pattern to capture parameter, value, unit, date, etc.                                                                                                                        // Match ND, Number, <Number, and J-flags
-    const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\btph-gro\b|\bgasoline range organics\b|\btoluene\b|\bMethyl-tert-butyl ether\b|\bTotal Petroleum Hydrocarbons\b|\bDiesel Fuel\b|\bFuel Oil\b|\bJet Fuel\b|\bKerosene\b|\bMineral Spirits\b|\bMotor Oil\b|\bxylene \(total\)\b|\b1,2-DichloroEthane\b|\b1,2-Dibromoethane \(EDB\)\b)\s+(ND|<[\d\.]+|[\d\.]+J|[\d\.]+)(?:.*?)(\d+\.\d*)/gi;
+    // Adjusted pattern to capture parameter, value, unit, date, etc.                                                                                                                                                                                                                                                                                            // Match ND, Number, <Number, and J-flags
+    const resultPattern = /(\bbenzene\b|\bethylbenzene\b|\btph-gro\b|\bgasoline range organics\b|\btoluene\b|\bMethyl-tert-butyl ether\b|\bTotal Petroleum Hydrocarbons\b|\bDiesel Fuel\b|\bFuel Oil\b|\bJet Fuel\b|\bKerosene\b|\bMineral Spirits\b|\bMotor Oil\b|\bxylene \(total\)\b|\b1,2-Dichloroethane\b|\b1,2-Dibromoethane \(EDB\)\b|\bNaphthalene\b)\s+(ND|<[\d\.]+|[\d\.]+J|[\d\.]+)(?:.*?)(\d+\.\d*)/gi;
                         
     let match;
     const results = [];
