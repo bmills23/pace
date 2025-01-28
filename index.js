@@ -72,7 +72,7 @@ function extractResults(text) {
         console.log(`Extracting results for Sample ID: ${sampleId}`); // Debug log
         console.log(`Results Section: ${analysis}`); // Debug log
         
-        const resultMatch = [...resultsSection.matchAll(resultPattern)];
+        const resultMatch = [...analysis.matchAll(resultPattern)];
 
         console.log("Matched results", resultMatch);
 
